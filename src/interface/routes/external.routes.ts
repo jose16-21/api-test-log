@@ -1,33 +1,17 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import { callExternalApi } from '../../application/services/externalApiService';
-import logger from '../../infrastructure/logger/logger';
+import { Router, Request, Response } from 'express';
+import { ExternalUseCases } from '../../application/use-cases/ExternaServiceUseCases';
+import { ExternalService } from '../../application/services/ExternalService';
 
 const router = Router();
+const externalUseCases = new ExternalUseCases(new ExternalService());
 
-router.get('/:code', async (req: Request, res: Response, next: NextFunction) => {
-  const { code } = req.params;
-
+router.get('/post/:id', async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
   try {
-    const result = await callExternalApi(code);
-    res.json(result);
-  } catch (err: any) {
-    const statusCode = err?.status || err?.response?.status || 500;
-    const message = err?.message || err?.response?.statusText || 'Internal Server Error';
-
-    logger.error(
-      {
-        reqId: (req as any).id,
-        status: statusCode,
-        message: message
-      },
-      'External API call failed'
-    );
-
-    res.status(statusCode).json({
-      error: message,
-      code: statusCode,
-      requestId: (req as any).id
-    });
+    const data = await externalUseCases.fetchPost(id);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: 'Error al llamar al servicio externo' });
   }
 });
 
