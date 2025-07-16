@@ -5,7 +5,6 @@ import { UserUseCases } from '../../application/use-cases/UserUseCases';
 import { User } from '../../domain/entities/User';
 import logger from '../../infrastructure/logger/logger';
 
-
 const router = Router();
 
 let userUseCases: UserUseCases;
@@ -34,7 +33,11 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 router.put('/:id', async (req: Request, res: Response) => {
-  const user = new User(Number(req.params.id), req.body.name);
+  const user: User = {
+    id: Number(req.params.id),
+    name: req.body.name,
+    email: req.body.email
+  };
   const updated = await userUseCases.updateUser(user);
   res.json(updated);
 });
