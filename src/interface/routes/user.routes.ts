@@ -19,6 +19,6 @@ router.post('/', (req, res, next) => userController.create(req, res, next));
 router.get('/:id', (req, res) => userController.getById(req, res));
 router.put('/:id', (req, res) => userController.update(req, res));
 router.delete('/:id', (req, res) => userController.delete(req, res));
-router.get('/', (req, res) => userController.list(req, res));
+router.get('/', (req, res, next) => userController.list(req, res, next));
 
 export default router;

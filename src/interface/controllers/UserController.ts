@@ -1,8 +1,7 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { UserUseCases } from '../../application/use-cases/UserUseCases';
-import { User } from '../../domain/entities/User';
 import logger from '../../infrastructure/logger/logger';
-import { BaseError, ErrorCodes } from '@tigo/trace';
+import { User } from '../../domain/entities/User';
 
 export class UserController {
   constructor(private userUseCases: UserUseCases) { }
@@ -21,7 +20,7 @@ export class UserController {
       res.json(created);
     } catch (error) {
       logger.error('Error creating user', { error });
-      next(new BaseError(ErrorCodes.DB_ERROR, 422));
+      next(error);
     }
 
   }
@@ -47,8 +46,23 @@ export class UserController {
     res.status(204).send();
   }
 
-  async list(req: Request, res: Response) {
-    const users = await this.userUseCases.listUsers();
-    res.json(users);
+  async list(req: Request, res: Response, next: NextFunction) {
+    try {
+      const users = await this.userUseCases.listUsers();
+      res.json(users);
+    } catch (error) {
+      // ERROR - Para errores críticos que afectan la funcionalidad
+      logger.error('Error al crear usuario en la base de datos', { errorCode: 'DB_001', operation: 'createUser' }, { userId: req.body?.email, requestId: 'req-123' });
+
+      // WARN - Para situaciones anómalas pero no críticas
+      logger.warn('Usuario no encontrado en la base de datos', { userId: req.params.id, operation: 'getById' }, { endpoint: '/users/:id', method: 'GET' });
+
+      // INFO - Para eventos importantes del flujo normal
+      logger.info('Usuario creado exitosamente', { userId: 123, email: req.body.email }, { operation: 'createUser', duration: '250ms' });
+
+      // DEBUG - Para información detallada de depuración
+      logger.debug('Validando datos de entrada del usuario', { validationRules: ['email', 'name'], inputData: req.body }, { controller: 'UserController', method: 'create' });
+      next(error);
+    }
   }
 }
