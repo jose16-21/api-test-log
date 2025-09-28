@@ -1,19 +1,11 @@
-import pino from 'pino';
+import { Environment, OutputFormat, SupportedLang } from "@smdv/logger";
+import { Logger } from "@smdv/logger/dist/logger";
 
-const isDev = process.env.NODE_ENV !== 'production';
-
-const logger = isDev
-  ? pino({
-    level: process.env.LOG_LEVEL || 'debug',
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        colorize: true
-      }
-    }
-  })
-  : pino({
-    level: process.env.LOG_LEVEL || 'info'
-  });
+const logger = new Logger({
+  service: 'TestingApp',
+  environment: Environment.LOCAL,
+  outputFormat: OutputFormat.JSON,
+  lang: SupportedLang.ES,
+});
 
 export default logger;
